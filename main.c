@@ -3,7 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define dump(f, v) fprintf(stderr, #v " = %" #f "\n", v)
+
 int main(int argc, char **argv) {
+    struct wavefrontobj foo;
+
+    dump(zu, sizeof(foo.facegroups));
+    dump(zu, sizeof(foo.facegroups[0]));
+    dump(zu, sizeof(foo.indices));
+    dump(zu, sizeof(foo.indices[0]));
+    dump(zu, sizeof(foo.vertices));
+    dump(zu, sizeof(foo.vertices[0]));
+
     if (argc < 2) {
         fprintf(stderr, "usage: %s [file ...]\n", argv[0]);
         return EXIT_FAILURE;

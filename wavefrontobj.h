@@ -2,12 +2,21 @@
 #define WAVEFRONTOBJ_H
 
 #include <stdio.h>
+
+struct wavefrontobj {
+    float (*normals)[3], (*texcoords)[3], (*vertices)[3];
+    unsigned int (*facegroups)[2], (*indices)[3];
+    unsigned int num_facegroups, num_indices, num_vertices, num_texcoords, num_normals;
+};
+
+void wavefrontobj_parse(struct wavefrontobj *mesh, FILE *stream);
+
+#endif // WAVEFRONTOBJ_H
+
+#ifdef WAVEFRONTOBJ_IMPLEMENTATION
+
 #include <stdlib.h>
 #include <string.h>
-
-typedef int ivec2[2];
-typedef int ivec3[3];
-typedef float vec3[3];
 
 #define push_back(data, size, value)                        \
     do {                                                    \
@@ -15,24 +24,11 @@ typedef float vec3[3];
         memcpy(data + size++, value, sizeof(data[0]));      \
     } while (0)
 
-struct wavefrontobj {
-    ivec2 *facegroups;
-    ivec3 *indices;
-    vec3 *normals;
-    vec3 *texcoords;
-    vec3 *vertices;
-    unsigned int num_facegroups, num_indices, num_vertices, num_texcoords, num_normals;
-};
-
-#endif // WAVEFRONTOBJ_H
-
-#ifdef WAVEFRONTOBJ_IMPLEMENTATION
-
 void wavefrontobj_parse(struct wavefrontobj *mesh, FILE *stream) {
     char line[256];
     while (fgets(line, sizeof(line), stream)) {
         if (line[0] == 'v') {
-            vec3 v = {0, 0, 0};
+            float v[3] = {0, 0, 0};
             sscanf(line + 2, "%f %f %f", v + 0, v + 1, v + 2);
             if (line[1] == 'n')
                 push_back(mesh->normals, mesh->num_normals, &v);
@@ -44,7 +40,7 @@ void wavefrontobj_parse(struct wavefrontobj *mesh, FILE *stream) {
             unsigned int count = 0;
             char *saveptr, *token = strtok_r(line + 2, " ", &saveptr);
             while (token) {
-                ivec3 v = {1, 1, 1};
+                int v[3] = {1, 1, 1};
                 if (sscanf(token, "%d/%d/%d", v + 0, v + 1, v + 2) == 3 ||
                     sscanf(token, "%d/%d", v + 0, v + 1) == 2 ||
                     sscanf(token, "%d//%d", v + 0, v + 2) == 2 ||
@@ -55,22 +51,24 @@ void wavefrontobj_parse(struct wavefrontobj *mesh, FILE *stream) {
                         push_back(mesh->indices, mesh->num_indices, mesh->indices + start);
                         push_back(mesh->indices, mesh->num_indices, mesh->indices + prev);
                     }
-                    v[0] = v[1] > 0 ? v[0] - 1 : v[0] + mesh->num_vertices;
-                    v[1] = v[1] > 0 ? v[1] - 1 : v[1] + mesh->num_texcoords;
-                    v[2] = v[2] > 0 ? v[2] - 1 : v[2] + mesh->num_normals;
-                    push_back(mesh->indices, mesh->num_indices, &v);
+                    v[0] = v[1] > 0 ? (unsigned int)v[0] - 1 : v[0] + mesh->num_vertices;
+                    v[1] = v[1] > 0 ? (unsigned int)v[1] - 1 : v[1] + mesh->num_texcoords;
+                    v[2] = v[2] > 0 ? (unsigned int)v[2] - 1 : v[2] + mesh->num_normals;
+                    push_back(mesh->indices, mesh->num_indices, (&(unsigned int [3]){v[0], v[1], v[2]}));
                     ++count;
                 }
                 token = strtok_r(NULL, " ", &saveptr);
             }
         } else if (line[0] == 'u') {
-            ivec2 v = {mesh->num_indices, 0x811C9DC5};
+            unsigned int v[2] = {mesh->num_indices, 0x811C9DC5};
             for (const char *s = line + 7; *s && *s != '\n'; ++s)
                 v[1] = ((unsigned int)v[1] ^ (unsigned char)*s) * 0x01000193;
             push_back(mesh->facegroups, mesh->num_facegroups, &v);
         }
     }
-    push_back(mesh->facegroups, mesh->num_facegroups, (&(ivec2){(int)mesh->num_indices, 0}));
+    push_back(mesh->facegroups, mesh->num_facegroups, (&(unsigned int [2]){mesh->num_indices, 0}));
 }
+
+#undef push_back
 
 #endif // WAVEFRONTOBJ_IMPLEMENTATION
