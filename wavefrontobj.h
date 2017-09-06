@@ -8,7 +8,7 @@ struct wavefront_coord {
 };
 
 struct wavefront_index {
-    unsigned int vertex, normal, texcoord;
+    unsigned int vertex, texcoord, normal;
 };
 
 struct wavefront_group {
@@ -17,10 +17,10 @@ struct wavefront_group {
 };
 
 struct wavefront_mesh {
-    struct wavefront_coord *vertices, *normals, *texcoords;
+    struct wavefront_coord *vertices, *texcoords, *normals;
     struct wavefront_index *indices;
     struct wavefront_group *groups;
-    unsigned int num_groups, num_indices, num_vertices, num_normals, num_texcoords;
+    unsigned int num_groups, num_indices, num_vertices, num_texcoords, num_normals;
 };
 
 void wavefrontobj_fixup(struct wavefront_mesh *mesh);
