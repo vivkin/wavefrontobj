@@ -81,7 +81,12 @@ void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
             v[0] = strtol(line, &end, 10);
             if (end == line)
                 break;
-            v[1] = (end[0] == '/' && end[1] != '/') ? strtol(end + 1, &end, 10) : 0;
+            if (*end == '/') {
+                ++end;
+                v[1] = (end[0] != '/') ? strtol(end + 1, &end, 10) : 0;
+            } else {
+                v[1] = 0;
+            }
             v[2] = (end[0] == '/') ? strtol(end + 1, &end, 10) : 0;
             if (count > 2) {
                 unsigned int start = mesh->num_indices - (count - 2) * 3;
