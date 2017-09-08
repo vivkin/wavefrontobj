@@ -61,8 +61,11 @@ void wavefrontobj_free(struct wavefront_mesh *mesh) {
 
 void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
     if (line[0] == 'v') {
-        struct wavefront_coord coord = {0, 0, 0};
-        sscanf(line + 2, "%f %f %f", &coord.x, &coord.y, &coord.z);
+        struct wavefront_coord coord;
+        char *end;
+        coord.x = strtof(line + 2, &end);
+        coord.y = strtof(end, &end);
+        coord.y = strtof(end, &end);
         if (line[1] == 'n')
             push_back(mesh->normals, mesh->num_normals, &coord);
         else if (line[1] == 't')
@@ -71,13 +74,15 @@ void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
             push_back(mesh->vertices, mesh->num_vertices, &coord);
     } else if (line[0] == 'f') {
         unsigned int count = 0;
-        int v[3] = {0, 0, 0};
-        int n;
+        long v[3];
+        char *end;
         line += 2;
-        while (sscanf(line, "%d/%d/%d%n", v + 0, v + 1, v + 2, &n) == 3 ||
-               sscanf(line, "%d/%d%n", v + 0, v + 1, &n) == 2 ||
-               sscanf(line, "%d//%d%n", v + 0, v + 2, &n) == 2 ||
-               sscanf(line, "%d%n", v + 0, &n) == 1) {
+        for (;;) {
+            v[0] = strtol(line, &end, 10);
+            if (end == line)
+                break;
+            v[1] = (end[0] == '/' && end[1] != '/') ? strtol(end + 1, &end, 10) : 0;
+            v[2] = (end[0] == '/') ? strtol(end + 1, &end, 10) : 0;
             if (count > 2) {
                 unsigned int start = mesh->num_indices - (count - 2) * 3;
                 unsigned int prev = mesh->num_indices - 1;
@@ -90,8 +95,7 @@ void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
                 v[2] > 0 ? (unsigned int)v[2] - 1 : v[2] + mesh->num_normals};
             push_back(mesh->indices, mesh->num_indices, &index);
             count++;
-            v[0] = v[1] = v[2] = 0;
-            line += n;
+            line = end;
         }
     } else if (line[0] == 'u' || line[0] == 'o' || line[0] == 'g') {
         if (mesh->num_groups)
