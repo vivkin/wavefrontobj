@@ -65,7 +65,7 @@ void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
         char *end;
         coord.x = strtof(line + 2, &end);
         coord.y = strtof(end, &end);
-        coord.y = strtof(end, &end);
+        coord.z = strtof(end, &end);
         if (line[1] == 'n')
             push_back(mesh->normals, mesh->num_normals, &coord);
         else if (line[1] == 't')
@@ -90,9 +90,9 @@ void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
                 push_back(mesh->indices, mesh->num_indices, mesh->indices + prev);
             }
             struct wavefront_index index = {
-                v[0] > 0 ? (unsigned int)v[0] - 1 : v[0] + mesh->num_vertices,
-                v[1] > 0 ? (unsigned int)v[1] - 1 : v[1] + mesh->num_texcoords,
-                v[2] > 0 ? (unsigned int)v[2] - 1 : v[2] + mesh->num_normals};
+                (unsigned int)(v[0] > 0 ? v[0] - 1 : v[0] + mesh->num_vertices),
+                (unsigned int)(v[1] > 0 ? v[1] - 1 : v[1] + mesh->num_texcoords),
+                (unsigned int)(v[2] > 0 ? v[2] - 1 : v[2] + mesh->num_normals)};
             push_back(mesh->indices, mesh->num_indices, &index);
             count++;
             line = end;
