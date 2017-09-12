@@ -74,20 +74,16 @@ void wavefrontobj_line(struct wavefront_mesh *mesh, const char *line) {
             push_back(mesh->vertices, mesh->num_vertices, &coord);
     } else if (line[0] == 'f') {
         unsigned int count = 0;
-        long v[3];
         char *end;
         line += 2;
         for (;;) {
-            v[0] = strtol(line, &end, 10);
+            long v[3] = {strtol(line, &end, 10), 0, 0};
             if (end == line)
                 break;
-            if (*end == '/') {
-                ++end;
-                v[1] = (end[0] != '/') ? strtol(end + 1, &end, 10) : 0;
-            } else {
-                v[1] = 0;
-            }
-            v[2] = (end[0] == '/') ? strtol(end + 1, &end, 10) : 0;
+            if (*end == '/')
+                v[1] = strtol(end + 1, &end, 10);
+            if (*end == '/')
+                v[2] = strtol(end + 1, &end, 10);
             if (count > 2) {
                 unsigned int start = mesh->num_indices - (count - 2) * 3;
                 unsigned int prev = mesh->num_indices - 1;
